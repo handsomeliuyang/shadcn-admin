@@ -48,6 +48,15 @@ Go to the project directory
   cd shadcn-admin
 ```
 
+change node version
+```bash
+nvm install v20.18.1
+nvm use v20.18.1
+
+# options
+npm install -g pnpm
+```
+
 Install dependencies
 
 ```bash
