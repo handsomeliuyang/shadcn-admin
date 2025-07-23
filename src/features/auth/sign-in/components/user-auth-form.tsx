@@ -2,7 +2,7 @@ import { HTMLAttributes, useState } from 'react'
 import { z } from 'zod'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Link } from '@tanstack/react-router'
+import { Link, useRouter, useSearch } from '@tanstack/react-router'
 import { IconBrandFacebook, IconBrandGithub } from '@tabler/icons-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -16,12 +16,14 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { PasswordInput } from '@/components/password-input'
+import { useAuth } from '@/stores/authStore'
+import { toast } from 'sonner'
 
 type UserAuthFormProps = HTMLAttributes<HTMLFormElement>
 
 const formSchema = z.object({
   email: z.email({
-    error: (iss) => (iss.input === '' ? 'Please enter your email' : undefined),
+    message: 'Please enter a valid email address',
   }),
   password: z
     .string()
@@ -31,6 +33,9 @@ const formSchema = z.object({
 
 export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
   const [isLoading, setIsLoading] = useState(false)
+  const { login } = useAuth()
+  const router = useRouter()
+  const search = useSearch({ strict: false }) as { redirect?: string }
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -40,14 +45,37 @@ export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
     },
   })
 
-  function onSubmit(data: z.infer<typeof formSchema>) {
+  async function onSubmit(data: z.infer<typeof formSchema>) {
     setIsLoading(true)
-    // eslint-disable-next-line no-console
-    console.log(data)
-
-    setTimeout(() => {
+    
+    try {
+      const result = await login(data)
+      
+      if (result.success) {
+        toast.success('登录成功！', {
+          description: '正在跳转...',
+        })
+        
+        // 登录成功后跳转到原来要访问的页面，如果没有则跳转到主页
+        const redirectTo = search.redirect || '/'
+        router.navigate({ to: redirectTo as any })
+      } else {
+        toast.error('登录失败', {
+          description: result.error || '登录过程中发生错误',
+        })
+        form.setError('password', {
+          type: 'manual',
+          message: result.error || '登录失败',
+        })
+      }
+    } catch (error) {
+      toast.error('登录失败', {
+        description: '网络错误，请稍后重试',
+      })
+      console.error('Login error:', error)
+    } finally {
       setIsLoading(false)
-    }, 3000)
+    }
   }
 
   return (
@@ -64,7 +92,11 @@ export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
             <FormItem>
               <FormLabel>Email</FormLabel>
               <FormControl>
-                <Input placeholder='name@example.com' {...field} />
+                <Input 
+                  placeholder='name@example.com' 
+                  {...field} 
+                  disabled={isLoading}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -77,7 +109,11 @@ export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
             <FormItem className='relative'>
               <FormLabel>Password</FormLabel>
               <FormControl>
-                <PasswordInput placeholder='********' {...field} />
+                <PasswordInput 
+                  placeholder='********' 
+                  {...field} 
+                  disabled={isLoading}
+                />
               </FormControl>
               <FormMessage />
               <Link
@@ -90,8 +126,17 @@ export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
           )}
         />
         <Button className='mt-2' disabled={isLoading}>
-          Login
+          {isLoading ? 'Logging in...' : 'Login'}
         </Button>
+
+        <div className='mt-4 text-sm text-muted-foreground'>
+          <div className='font-medium mb-2'>测试账号：</div>
+          <div className='space-y-1 text-xs'>
+            <div>管理员: admin@example.com / admin123</div>
+            <div>用户: user@example.com / user123</div>
+            <div>经理: manager@example.com / manager123</div>
+          </div>
+        </div>
 
         <div className='relative my-2'>
           <div className='absolute inset-0 flex items-center'>
