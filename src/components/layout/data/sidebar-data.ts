@@ -61,12 +61,12 @@ export const sidebarData: SidebarData = {
         //   icon: IconChecklist,
         // },
         {
-          title: 'Apps',
+          title: '多账号管理',
           url: '/apps',
           icon: IconPackages,
         },
         {
-          title: 'Chats',
+          title: '聊天',
           url: '/chats',
           badge: '3',
           icon: IconMessages,

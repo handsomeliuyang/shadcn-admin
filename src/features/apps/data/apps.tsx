@@ -15,96 +15,88 @@ import {
   IconBrandWhatsapp,
   IconBrandZoom,
 } from '@tabler/icons-react'
+import type { JSX } from 'react'
 
-export const apps = [
+// 示例用户数据
+const userAppsMap = new Map<string, Array<{
+  username: string
+  email: string
+  userId: string
+  category: string
+  unreadCount: number
+  desc: string
+}>>()
+
+// 刘阳
+userAppsMap.set('liuyang@ok.com', [
   {
-    name: 'Telegram',
-    logo: <IconBrandTelegram />,
-    connected: false,
-    desc: 'Connect with Telegram for real-time communication.',
+    username: '刘阳',
+    email: 'liuyang@ok.com',
+    userId: 'user001',
+    category: '招聘',
+    unreadCount: 2,
+    desc: '说明',
   },
   {
-    name: 'Notion',
-    logo: <IconBrandNotion />,
-    connected: true,
-    desc: 'Effortlessly sync Notion pages for seamless collaboration.',
+    username: '刘阳',
+    email: 'liuyang@ok.com',
+    userId: 'user001',
+    category: '招聘',
+    unreadCount: 0,
+    desc: '说明',
   },
   {
-    name: 'Figma',
-    logo: <IconBrandFigma />,
-    connected: true,
-    desc: 'View and collaborate on Figma designs in one place.',
+    username: '刘阳',
+    email: 'liuyang@ok.com',
+    userId: 'user001',
+    category: '招聘',
+    unreadCount: 5,
+    desc: '说明',
   },
   {
-    name: 'Trello',
-    logo: <IconBrandTrello />,
-    connected: false,
-    desc: 'Sync Trello cards for streamlined project management.',
+    username: '刘阳',
+    email: 'liuyang@ok.com',
+    userId: 'user001',
+    category: '招聘',
+    unreadCount: 0,
+    desc: '说明',
+  },
+])
+
+// 何鑫
+userAppsMap.set('hexin@ok.com', [
+  {
+    username: '何鑫',
+    email: 'hexin@ok.com',
+    userId: 'user002',
+    category: '二手',
+    unreadCount: 1,
+    desc: '说明',
   },
   {
-    name: 'Slack',
-    logo: <IconBrandSlack />,
-    connected: false,
-    desc: 'Integrate Slack for efficient team communication',
+    username: '何鑫',
+    email: 'hexin@ok.com',
+    userId: 'user002',
+    category: '二手',
+    unreadCount: 0,
+    desc: '说明',
   },
   {
-    name: 'Zoom',
-    logo: <IconBrandZoom />,
-    connected: true,
-    desc: 'Host Zoom meetings directly from the dashboard.',
+    username: '何鑫',
+    email: 'hexin@ok.com',
+    userId: 'user002',
+    category: '二手',
+    unreadCount: 0,
+    desc: '说明',
   },
   {
-    name: 'Stripe',
-    logo: <IconBrandStripe />,
-    connected: false,
-    desc: 'Easily manage Stripe transactions and payments.',
+    username: '何鑫',
+    email: 'hexin@ok.com',
+    userId: 'user002',
+    category: '二手',
+    unreadCount: 3,
+    desc: '说明',
   },
-  {
-    name: 'Gmail',
-    logo: <IconBrandGmail />,
-    connected: true,
-    desc: 'Access and manage Gmail messages effortlessly.',
-  },
-  {
-    name: 'Medium',
-    logo: <IconBrandMedium />,
-    connected: false,
-    desc: 'Explore and share Medium stories on your dashboard.',
-  },
-  {
-    name: 'Skype',
-    logo: <IconBrandSkype />,
-    connected: false,
-    desc: 'Connect with Skype contacts seamlessly.',
-  },
-  {
-    name: 'Docker',
-    logo: <IconBrandDocker />,
-    connected: false,
-    desc: 'Effortlessly manage Docker containers on your dashboard.',
-  },
-  {
-    name: 'GitHub',
-    logo: <IconBrandGithub />,
-    connected: false,
-    desc: 'Streamline code management with GitHub integration.',
-  },
-  {
-    name: 'GitLab',
-    logo: <IconBrandGitlab />,
-    connected: false,
-    desc: 'Efficiently manage code projects with GitLab integration.',
-  },
-  {
-    name: 'Discord',
-    logo: <IconBrandDiscord />,
-    connected: false,
-    desc: 'Connect with Discord for seamless team communication.',
-  },
-  {
-    name: 'WhatsApp',
-    logo: <IconBrandWhatsapp />,
-    connected: false,
-    desc: 'Easily integrate WhatsApp for direct messaging.',
-  },
-]
+])
+
+export const appsMap = userAppsMap;

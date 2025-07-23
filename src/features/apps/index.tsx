@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import {
   IconAdjustmentsHorizontal,
   IconSortAscendingLetters,
@@ -19,7 +19,8 @@ import { Main } from '@/components/layout/main'
 import { ProfileDropdown } from '@/components/profile-dropdown'
 import { Search } from '@/components/search'
 import { ThemeSwitch } from '@/components/theme-switch'
-import { apps } from './data/apps'
+import { appsMap } from './data/apps'
+import { useAuth } from '@/stores/authStore'
 
 const appText = new Map<string, string>([
   ['all', 'All Apps'],
@@ -28,30 +29,39 @@ const appText = new Map<string, string>([
 ])
 
 export default function Apps() {
-  const [sort, setSort] = useState('ascending')
-  const [appType, setAppType] = useState('all')
+  const [sort, setSort] = useState('descending')
+  // const [appType, setAppType] = useState('all')
   const [searchTerm, setSearchTerm] = useState('')
+  const { user: authUser } = useAuth()
 
-  const filteredApps = apps
+  // 获取当前用户的apps
+  const userEmail = authUser?.email
+  const userApps = useMemo(() => {
+    if (!userEmail) return []
+    return appsMap.get(userEmail) || []
+  }, [userEmail])
+
+  const filteredApps = userApps
+    .slice()
     .sort((a, b) =>
       sort === 'ascending'
-        ? a.name.localeCompare(b.name)
-        : b.name.localeCompare(a.name)
+        ? a.unreadCount - b.unreadCount
+        : b.unreadCount - a.unreadCount
     )
-    .filter((app) =>
-      appType === 'connected'
-        ? app.connected
-        : appType === 'notConnected'
-          ? !app.connected
-          : true
-    )
-    .filter((app) => app.name.toLowerCase().includes(searchTerm.toLowerCase()))
+    // .filter((app) =>
+    //   appType === 'connected'
+    //     ? app.connected
+    //     : appType === 'notConnected'
+    //       ? !app.connected
+    //       : true
+    // )
+    .filter((app) => app.username.toLowerCase().includes(searchTerm.toLowerCase()))
 
   return (
     <>
       {/* ===== Top Heading ===== */}
       <Header>
-        <Search />
+        {/* <Search /> */}
         <div className='ml-auto flex items-center gap-4'>
           <ThemeSwitch />
           <ProfileDropdown />
@@ -62,10 +72,10 @@ export default function Apps() {
       <Main fixed>
         <div>
           <h1 className='text-2xl font-bold tracking-tight'>
-            App Integrations
+            多账号管理
           </h1>
           <p className='text-muted-foreground'>
-            Here&apos;s a list of your apps for the integration!
+            所有代运营账号的列表，可以在这里进行管理
           </p>
         </div>
         <div className='my-4 flex items-end justify-between sm:my-0 sm:items-center'>
@@ -76,7 +86,7 @@ export default function Apps() {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
-            <Select value={appType} onValueChange={setAppType}>
+            {/* <Select value={appType} onValueChange={setAppType}>
               <SelectTrigger className='w-36'>
                 <SelectValue>{appText.get(appType)}</SelectValue>
               </SelectTrigger>
@@ -85,7 +95,7 @@ export default function Apps() {
                 <SelectItem value='connected'>Connected</SelectItem>
                 <SelectItem value='notConnected'>Not Connected</SelectItem>
               </SelectContent>
-            </Select>
+            </Select> */}
           </div>
 
           <Select value={sort} onValueChange={setSort}>
@@ -114,25 +124,24 @@ export default function Apps() {
         <ul className='faded-bottom no-scrollbar grid gap-4 overflow-auto pt-4 pb-16 md:grid-cols-2 lg:grid-cols-3'>
           {filteredApps.map((app) => (
             <li
-              key={app.name}
+              key={app.email}
               className='rounded-lg border p-4 hover:shadow-md'
             >
               <div className='mb-8 flex items-center justify-between'>
                 <div
                   className={`bg-muted flex size-10 items-center justify-center rounded-lg p-2`}
                 >
-                  {app.logo}
+                  {app.unreadCount}
                 </div>
                 <Button
                   variant='outline'
                   size='sm'
-                  className={`${app.connected ? 'border border-blue-300 bg-blue-50 hover:bg-blue-100 dark:border-blue-700 dark:bg-blue-950 dark:hover:bg-blue-900' : ''}`}
                 >
-                  {app.connected ? 'Connected' : 'Connect'}
+                  {app.category}
                 </Button>
               </div>
               <div>
-                <h2 className='mb-1 font-semibold'>{app.name}</h2>
+                <h2 className='mb-1 font-semibold'>{app.username} | {app.email}</h2>
                 <p className='line-clamp-2 text-gray-500'>{app.desc}</p>
               </div>
             </li>
