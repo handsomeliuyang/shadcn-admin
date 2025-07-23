@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import {
   IconAdjustmentsHorizontal,
   IconSortAscendingLetters,
@@ -21,6 +21,7 @@ import { Search } from '@/components/search'
 import { ThemeSwitch } from '@/components/theme-switch'
 import { appsMap } from './data/apps'
 import { useAuth } from '@/stores/authStore'
+import { useUnreadCountService } from '@/services/websocket-service'
 
 const appText = new Map<string, string>([
   ['all', 'All Apps'],
@@ -33,6 +34,7 @@ export default function Apps() {
   // const [appType, setAppType] = useState('all')
   const [searchTerm, setSearchTerm] = useState('')
   const { user: authUser } = useAuth()
+  const { getUnreadCount, registerUserIds, getConnectionStatus } = useUnreadCountService()
 
   // 获取当前用户的apps
   const userEmail = authUser?.email
@@ -41,7 +43,25 @@ export default function Apps() {
     return appsMap.get(userEmail) || []
   }, [userEmail])
 
-  const filteredApps = userApps
+  // 注册用户ID到WebSocket服务
+  useEffect(() => {
+    if (userApps.length > 0) {
+      const userIds = userApps.map(app => app.userId)
+      const uniqueUserIds = [...new Set(userIds)] // 去重
+      registerUserIds(uniqueUserIds)
+      console.log('已注册用户ID列表:', uniqueUserIds)
+    }
+  }, [userApps, registerUserIds])
+
+  // 获取实时未读消息数的应用列表
+  const appsWithRealTimeUnread = useMemo(() => {
+    return userApps.map(app => ({
+      ...app,
+      unreadCount: getUnreadCount(app.userId), // 使用WebSocket数据，-1表示未获取
+    }))
+  }, [userApps, getUnreadCount])
+
+  const filteredApps = appsWithRealTimeUnread
     .slice()
     .sort((a, b) =>
       sort === 'ascending'
@@ -77,6 +97,17 @@ export default function Apps() {
           <p className='text-muted-foreground'>
             所有代运营账号的列表，可以在这里进行管理
           </p>
+          {/* WebSocket状态指示器 */}
+          <div className='mt-2 flex items-center gap-2 text-xs'>
+            <div 
+              className={`h-2 w-2 rounded-full ${
+                getConnectionStatus() ? 'bg-green-500' : 'bg-red-500'
+              }`}
+            />
+            <span className='text-muted-foreground'>
+              WebSocket: {getConnectionStatus() ? '已连接' : '未连接'}
+            </span>
+          </div>
         </div>
         <div className='my-4 flex items-end justify-between sm:my-0 sm:items-center'>
           <div className='flex flex-col gap-4 sm:my-4 sm:flex-row'>
@@ -129,9 +160,11 @@ export default function Apps() {
             >
               <div className='mb-8 flex items-center justify-between'>
                 <div
-                  className={`bg-muted flex size-10 items-center justify-center rounded-lg p-2`}
+                  className={`bg-muted flex size-10 items-center justify-center rounded-lg p-2 font-bold ${
+                    app.unreadCount === -1 ? '' : 'bg-red-100 text-red-600 dark:bg-red-900 dark:text-red-300'
+                  }`}
                 >
-                  {app.unreadCount}
+                  {app.unreadCount === -1 ? '---' : app.unreadCount}
                 </div>
                 <Button
                   variant='outline'
